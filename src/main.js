@@ -2,14 +2,11 @@ import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
 import NewsApiService from './js/pixabay-api';
-import { lightbox } from './js/render-functions';
-import './sass/index.scss';
+import { renderGallery, clearGallery, lightbox } from './js/render-functions';
+import { showLoader, hideLoader } from './js/loader';
+import { refs } from './js/refs';
 
-const refs = {
-  searchForm: document.querySelector('.form'),
-  galleryContainer: document.querySelector('.gallery'),
-  loadMoreBtn: document.querySelector('.load-more'),
-};
+import './sass/index.scss';
 
 let isShown = 0;
 const newsApiService = new NewsApiService();
@@ -17,11 +14,9 @@ const newsApiService = new NewsApiService();
 refs.searchForm.addEventListener('submit', onSearch);
 refs.loadMoreBtn.addEventListener('click', onLoadMore);
 
-// ───────────────────────────────────────
-
 async function onSearch(event) {
   event.preventDefault();
-  refs.galleryContainer.innerHTML = '';
+  clearGallery();
 
   const input = event.currentTarget.querySelector('input[name="searchQuery"]');
   if (!input) {
@@ -51,6 +46,7 @@ async function onLoadMore() {
 
 async function fetchGallery() {
   refs.loadMoreBtn.classList.add('is-hidden');
+  showLoader();
 
   try {
     const result = await newsApiService.fetchGallery();
@@ -89,36 +85,7 @@ async function fetchGallery() {
       position: 'topRight',
     });
     console.error('❌ Error fetching gallery:', error);
+  } finally {
+    hideLoader();
   }
-}
-
-function renderGallery(elements) {
-  const markup = elements
-    .map(
-      ({
-        webformatURL,
-        largeImageURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) => {
-        return `<div class="photo-card">
-    <a href="${largeImageURL}">
-      <img class="photo-img" src="${webformatURL}" alt="${tags}" loading="lazy" />
-    </a>
-    <div class="info">
-      <p class="info-item"><b>Likes</b> ${likes}</p>
-      <p class="info-item"><b>Views</b> ${views}</p>
-      <p class="info-item"><b>Comments</b> ${comments}</p>
-      <p class="info-item"><b>Downloads</b> ${downloads}</p>
-    </div>
-  </div>`;
-      }
-    )
-    .join('');
-
-  refs.galleryContainer.insertAdjacentHTML('beforeend', markup);
-  lightbox.refresh();
 }
