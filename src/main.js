@@ -1,92 +1,98 @@
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
+
 import NewsApiService from './js/pixabay-api';
 import { lightbox } from './js/render-functions';
 import './sass/index.scss';
 
 const refs = {
-  searchForm: document.querySelector('.search-form'),
+  searchForm: document.querySelector('.form'),
   galleryContainer: document.querySelector('.gallery'),
   loadMoreBtn: document.querySelector('.load-more'),
 };
+
 let isShown = 0;
 const newsApiService = new NewsApiService();
 
 refs.searchForm.addEventListener('submit', onSearch);
 refs.loadMoreBtn.addEventListener('click', onLoadMore);
 
-const options = {
-  rootMargin: '50px',
-  root: null,
-  threshold: 0.3,
-};
-const observer = new IntersectionObserver(onLoadMore, options);
+// ───────────────────────────────────────
 
-async function onSearch(element) {
-  element.preventDefault();
-
+async function onSearch(event) {
+  event.preventDefault();
   refs.galleryContainer.innerHTML = '';
-  newsApiService.query =
-    element.currentTarget.elements.searchQuery.value.trim();
+
+  const input = event.currentTarget.querySelector('input[name="searchQuery"]');
+  if (!input) {
+    console.error('⛔️ Input [name="searchQuery"] not found');
+    return;
+  }
+
+  newsApiService.query = input.value.trim();
   newsApiService.resetPage();
 
   if (newsApiService.query === '') {
     iziToast.warning({
-      message: `Please, fill the main field`,
+      message: 'Please, fill the main field',
+      position: 'topRight',
     });
     return;
   }
 
   isShown = 0;
-  let hits = await fetchGallery();
-  onRenderGallery(hits);
+  await fetchGallery();
 }
 
-function onLoadMore() {
+async function onLoadMore() {
   newsApiService.incrementPage();
-  fetchGallery();
+  await fetchGallery();
 }
 
 async function fetchGallery() {
   refs.loadMoreBtn.classList.add('is-hidden');
 
-  const result = await newsApiService.fetchGallery();
+  try {
+    const result = await newsApiService.fetchGallery();
+    const { hits, total } = result;
 
-  const { hits, total } = result;
+    if (!hits.length) {
+      iziToast.error({
+        message: 'Sorry, no images found.',
+        position: 'topRight',
+      });
+      return null;
+    }
 
-  isShown += hits.length;
+    renderGallery(hits);
+    isShown += hits.length;
 
-  if (!hits.length) {
+    if (isShown < total) {
+      iziToast.success({
+        message: `Hooray! Found ${total} images!`,
+        position: 'topRight',
+      });
+      refs.loadMoreBtn.classList.remove('is-hidden');
+    }
+
+    if (isShown >= total) {
+      iziToast.info({
+        message: `We're sorry, but you've reached the end of search results.`,
+        position: 'topRight',
+      });
+    }
+
+    return hits;
+  } catch (error) {
     iziToast.error({
-      message: 'Sorry, no images found.',
+      message: 'Something went wrong. Please try again later.',
       position: 'topRight',
     });
-    refs.loadMoreBtn.classList.add('is-hidden');
-    return [];
+    console.error('❌ Error fetching gallery:', error);
   }
-
-  onRenderGallery(hits);
-  isShown += hits.length;
-
-  if (isShown < total) {
-    iziToast.success({
-      message: `Hooray! Found ${total} images!`,
-      position: 'topRight',
-    });
-    refs.loadMoreBtn.classList.remove('is-hidden');
-  }
-
-  if (isShown >= total) {
-    iziToast.info({
-      message: `We're sorry, but you've reached the end of search results.`,
-      position: 'topRight',
-    });
-  }
-
-  return hits;
 }
 
-function onRenderGallery(elements) {
+function renderGallery(elements) {
   const markup = elements
     .map(
       ({
@@ -103,27 +109,16 @@ function onRenderGallery(elements) {
       <img class="photo-img" src="${webformatURL}" alt="${tags}" loading="lazy" />
     </a>
     <div class="info">
-      <p class="info-item">
-        <b>Likes</b>
-        ${likes}
-      </p>
-      <p class="info-item">
-        <b>Views</b>
-        ${views}
-      </p>
-      <p class="info-item">
-        <b>Comments</b>
-        ${comments}
-      </p>
-      <p class="info-item">
-        <b>Downloads</b>
-        ${downloads}
-      </p>
+      <p class="info-item"><b>Likes</b> ${likes}</p>
+      <p class="info-item"><b>Views</b> ${views}</p>
+      <p class="info-item"><b>Comments</b> ${comments}</p>
+      <p class="info-item"><b>Downloads</b> ${downloads}</p>
     </div>
-    </div>`;
+  </div>`;
       }
     )
     .join('');
+
   refs.galleryContainer.insertAdjacentHTML('beforeend', markup);
   lightbox.refresh();
 }

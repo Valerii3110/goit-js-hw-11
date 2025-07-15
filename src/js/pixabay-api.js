@@ -6,29 +6,29 @@ export default class NewsApiService {
     this.page = 1;
     this.PER_PAGE = 40;
   }
+
   async fetchGallery() {
     const axiosOptions = {
       method: 'get',
       url: 'https://pixabay.com/api/',
       params: {
         key: '51318694-35374bea804290f3a0783253d',
-        q: `${this.searchQuery}`,
+        q: this.searchQuery,
         image_type: 'photo',
         orientation: 'horizontal',
         safesearch: true,
-        page: `${this.page}`,
-        per_page: `${this.PER_PAGE}`,
+        page: this.page,
+        per_page: this.PER_PAGE,
       },
     };
+
     try {
       const response = await axios(axiosOptions);
-
-      const data = response.data;
-
       this.incrementPage();
-      return data;
+      return response.data;
     } catch (error) {
-      console.error(error);
+      console.error('❌ Error fetching data from Pixabay:', error);
+      throw error;
     }
   }
 
@@ -38,10 +38,6 @@ export default class NewsApiService {
 
   resetPage() {
     this.page = 1;
-  }
-
-  resetEndOfHits() {
-    this.endOfHits = false;
   }
 
   get query() {
