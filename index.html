@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ua">
+<html lang="uk">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,47 +9,36 @@
       integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
       crossorigin="anonymous"
     />
-
     <link rel="shortcut icon" href="/goit-js-hw-11/assets/favicon-1UTiRYUX.ico" />
-    <title>Gallery search</title>
+    <title>Simple Gallery Search</title>
     <script type="module" crossorigin src="/goit-js-hw-11/index.js"></script>
     <link rel="modulepreload" crossorigin href="/goit-js-hw-11/assets/vendor-BDlA6vKe.js">
     <link rel="stylesheet" crossorigin href="/goit-js-hw-11/assets/vendor-Dr4k8ETB.css">
-    <link rel="stylesheet" crossorigin href="/goit-js-hw-11/assets/index-BMZwwebM.css">
+    <link rel="stylesheet" crossorigin href="/goit-js-hw-11/assets/index-BNnhKpCr.css">
   </head>
   <body>
-    <form class="search-form" id="search-form">
-      <a href="https://pixabay.com/" target="_blank">
-        <img
-          class="search-form__logo"
-          src="/goit-js-hw-11/assets/pixabay-logo-CfV4o5eM.png"
-          alt="logo"
-          width="200"
+    <!-- ✅ Спрощена форма -->
+    <form class="form" id="search-form">
+      <label>
+        <input
+          type="text"
+          name="searchQuery"
+          placeholder="Search images..."
+          required
         />
-      </a>
-      <input
-        class="search-form__input"
-        type="text"
-        name="searchQuery"
-        autocomplete="off"
-        placeholder="Search images..."
-      />
-      <button class="search-form__button" type="submit">
-        <img
-          class="img-search"
-          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAB8UlEQVR4nMWWuy6EURDHf4W4JJQrdoXXYENQK1Q2gk1oiU5IdDqXgkZCIaj3AXgFSg8gWBQusbZxl09OMpLN5Jz9znfBP5liv535z5w5c2YGwtEBzACHwBnwDgTAG3AFlIA5IEPK6AL2gS9xGCbPwI7YJcYc8OLpWEsFGI/ruEFOEaQgG3EC2HaQXQIrQD+QBRqBnPw238sOO/NfpLQHSsw1zANNIbbNwILj2iZ9nHdbjG+BnignAHrFrpbnHmgPMzywnDyq8x/kgVfFt1XPIGt5aibtSbCo+KpAq0t51lJwYXeOR03owpx2KR8lqdw6WFW8uy7FM6VonlYaGFC8py7Fd6VoaiIN5BTvg0sxUGKaTBpoUrxPLsU3pWgiTwOdivfRpXj9SzUwqHiPXYqlX3oF64p3z3cGlOUdJ0GLJbMFl3JGlolaZTNYkmDJsiPUPdSOZRaYwRIHfZbCXvOZhhXLNMzHcH6neG6ANh/jCUtPeJXB0uxx50uWkwdSjN7YdGw2ZentA9InGuWdD4kDXXC18gGMRQliuQ5ZXPkEilGCKMomE8fZjWTlI2kmMrLJVD0dV8TxT8GNpREEsslMyTw/lZ7+KBk6kQ5XcBRqakEkwagliMg1kRSuTIz8dxDnfxmALQjTX/4cJu1mD70Ahr8BX/ROvaQCOfMAAAAASUVORK5CYII="
-          alt="search"
-          width="20"
-        />Search
-      </button>
+      </label>
+      <button type="submit">Search</button>
     </form>
 
+    <!-- 📸 Галерея -->
     <div class="gallery"></div>
 
+    <!-- 🔄 Прелоадер -->
     <div class="preloader is-hidden">
       <div class="loader"></div>
     </div>
 
+    <!-- 🔘 Кнопка Load more -->
     <button type="button" class="load-more is-hidden">Load more</button>
   </body>
 </html>
