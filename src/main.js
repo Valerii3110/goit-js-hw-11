@@ -1,7 +1,8 @@
-import './sass/index.scss';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 import NewsApiService from './js/pixabay-api';
 import { lightbox } from './js/render-functions';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import './sass/index.scss';
 
 const refs = {
   searchForm: document.querySelector('.search-form'),
@@ -21,7 +22,7 @@ const options = {
 };
 const observer = new IntersectionObserver(onLoadMore, options);
 
-function onSearch(element) {
+async function onSearch(element) {
   element.preventDefault();
 
   refs.galleryContainer.innerHTML = '';
@@ -30,12 +31,14 @@ function onSearch(element) {
   newsApiService.resetPage();
 
   if (newsApiService.query === '') {
-    Notify.warning('Please, fill the main field');
+    iziToast.warning({
+      message: `Please, fill the main field`,
+    });
     return;
   }
 
   isShown = 0;
-  fetchGallery();
+  let hits = await fetchGallery();
   onRenderGallery(hits);
 }
 
@@ -48,28 +51,39 @@ async function fetchGallery() {
   refs.loadMoreBtn.classList.add('is-hidden');
 
   const result = await newsApiService.fetchGallery();
+
   const { hits, total } = result;
+
   isShown += hits.length;
 
   if (!hits.length) {
-    Notify.failure(
-      `Sorry, there are no images matching your search query. Please try again.`
-    );
+    iziToast.error({
+      message: 'Sorry, no images found.',
+      position: 'topRight',
+    });
     refs.loadMoreBtn.classList.add('is-hidden');
-    return;
+    return [];
   }
 
   onRenderGallery(hits);
   isShown += hits.length;
 
   if (isShown < total) {
-    Notify.success(`Hooray! We found ${total} images !!!`);
+    iziToast.success({
+      message: `Hooray! Found ${total} images!`,
+      position: 'topRight',
+    });
     refs.loadMoreBtn.classList.remove('is-hidden');
   }
 
   if (isShown >= total) {
-    Notify.info("We're sorry, but you've reached the end of search results.");
+    iziToast.info({
+      message: `We're sorry, but you've reached the end of search results.`,
+      position: 'topRight',
+    });
   }
+
+  return hits;
 }
 
 function onRenderGallery(elements) {
