@@ -42,3 +42,11 @@ export function renderGallery(images) {
 export function clearGallery() {
   refs.galleryContainer.innerHTML = '';
 }
+
+export function showLoader() {
+  loaderEl.classList.remove('is-hidden');
+}
+
+export function hideLoader() {
+  loaderEl.classList.add('is-hidden');
+}

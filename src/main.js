@@ -1,91 +1,87 @@
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
-import NewsApiService from './js/pixabay-api';
+import { fetchGallery } from './js/pixabay-api';
 import { renderGallery, clearGallery, lightbox } from './js/render-functions';
 import { showLoader, hideLoader } from './js/loader';
 import { refs } from './js/refs';
 
 import './sass/index.scss';
 
-let isShown = 0;
-const newsApiService = new NewsApiService();
+let query = '';
+let page = 1;
+let totalImagesShown = 0;
+const PER_PAGE = 40;
 
 refs.searchForm.addEventListener('submit', onSearch);
 refs.loadMoreBtn.addEventListener('click', onLoadMore);
 
 async function onSearch(event) {
   event.preventDefault();
-  clearGallery();
 
-  const input = event.currentTarget.querySelector('input[name="searchQuery"]');
-  if (!input) {
-    console.error('⛔️ Input [name="searchQuery"] not found');
-    return;
-  }
+  const input = event.currentTarget.elements.searchQuery;
+  query = input.value.trim();
 
-  newsApiService.query = input.value.trim();
-  newsApiService.resetPage();
-
-  if (newsApiService.query === '') {
+  if (!query) {
     iziToast.warning({
-      message: 'Please, fill the main field',
+      message: 'Please, enter a search term',
       position: 'topRight',
     });
     return;
   }
 
-  isShown = 0;
-  await fetchGallery();
+  page = 1;
+  totalImagesShown = 0;
+  clearGallery();
+
+  await loadImages();
 }
 
 async function onLoadMore() {
-  newsApiService.incrementPage();
-  await fetchGallery();
+  page += 1;
+  await loadImages();
 }
 
-async function fetchGallery() {
-  refs.loadMoreBtn.classList.add('is-hidden');
-  showLoader();
+async function loadImages() {
+  showLoader(); // ✅ Показуємо лоадер
+  refs.loadMoreBtn.classList.add('is-hidden'); // Приховуємо кнопку до моменту перевірки
 
   try {
-    const result = await newsApiService.fetchGallery();
-    const { hits, total } = result;
+    const { hits, totalHits } = await fetchGallery(query, page);
 
-    if (!hits.length) {
+    if (hits.length === 0 && totalImagesShown === 0) {
       iziToast.error({
-        message: 'Sorry, no images found.',
+        message: 'No images found',
         position: 'topRight',
       });
-      return null;
+      return;
     }
 
     renderGallery(hits);
-    isShown += hits.length;
+    totalImagesShown += hits.length;
 
-    if (isShown < total) {
+    if (page === 1) {
       iziToast.success({
-        message: `Hooray! Found ${total} images!`,
+        message: `Hooray! Found ${totalHits} images!`,
         position: 'topRight',
       });
+    }
+
+    if (totalImagesShown < totalHits) {
       refs.loadMoreBtn.classList.remove('is-hidden');
-    }
-
-    if (isShown >= total) {
+    } else {
       iziToast.info({
-        message: `We're sorry, but you've reached the end of search results.`,
+        message: "You've reached the end of the search results.",
         position: 'topRight',
       });
     }
-
-    return hits;
   } catch (error) {
     iziToast.error({
-      message: 'Something went wrong. Please try again later.',
+      message: 'Failed to fetch images. Please try again later.',
       position: 'topRight',
     });
-    console.error('❌ Error fetching gallery:', error);
+    console.error('❌ Error:', error);
   } finally {
-    hideLoader();
+    hideLoader(); // ✅ Приховуємо лоадер у будь-якому випадку
   }
 }
